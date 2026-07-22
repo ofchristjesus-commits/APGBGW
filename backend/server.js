@@ -18,62 +18,38 @@ app.use(express.json());
 app.use(express.static(join(__dirname, '../frontend/dist')));
 
 
-const loadDb = () => {
-  if (!existsSync(DB_PATH)) {
-    writeFileSync(DB_PATH, JSON.stringify(allSeeds, null, 2), 'utf-8');
-  }
-  return JSON.parse(readFileSync(DB_PATH, 'utf-8'));
-};
+import { supabase } from './supabase.js';
 
-const saveDb = (db) => {
-  writeFileSync(DB_PATH, JSON.stringify(db, null, 2), 'utf-8');
-};
-
-const getCollection = (db, name) => db[name] || [];
-const setCollection = (db, name, collection) => ({ ...db, [name]: collection });
-
-app.get('/api/:entity', (req, res) => {
-  const db = loadDb();
-  const collection = getCollection(db, req.params.entity);
-  res.json(collection);
+app.get('/api/:entity', async (req, res) => {
+  const { data, error } = await supabase.from(req.params.entity).select('*');
+  if (error) return res.status(500).json({ error: error.message });
+  res.json(data);
 });
 
-app.get('/api/:entity/:id', (req, res) => {
-  const db = loadDb();
-  const collection = getCollection(db, req.params.entity);
-  const item = collection.find((item) => String(item.id) === req.params.id);
-  if (!item) return res.status(404).json({ error: 'Not found' });
-  res.json(item);
+app.get('/api/:entity/:id', async (req, res) => {
+  const { data, error } = await supabase.from(req.params.entity).select('*').eq('id', req.params.id).single();
+  if (error) return res.status(404).json({ error: 'Not found' });
+  res.json(data);
 });
 
-app.post('/api/:entity', (req, res) => {
-  const db = loadDb();
-  const collection = getCollection(db, req.params.entity);
-  const maxId = collection.reduce((max, item) => Math.max(max, item.id || 0), 0);
-  const newItem = { ...req.body, id: maxId + 1 };
-  const updated = [...collection, newItem];
-  saveDb(setCollection(db, req.params.entity, updated));
-  res.status(201).json(newItem);
+app.post('/api/:entity', async (req, res) => {
+  const { data, error } = await supabase.from(req.params.entity).insert(req.body).select().single();
+  if (error) return res.status(500).json({ error: error.message });
+  res.status(201).json(data);
 });
 
-app.put('/api/:entity/:id', (req, res) => {
-  const db = loadDb();
-  const collection = getCollection(db, req.params.entity);
-  const item = collection.find((item) => String(item.id) === req.params.id);
-  if (!item) return res.status(404).json({ error: 'Not found' });
-  const updatedItem = { ...item, ...req.body };
-  const updated = collection.map((entry) => (String(entry.id) === req.params.id ? updatedItem : entry));
-  saveDb(setCollection(db, req.params.entity, updated));
-  res.json(updatedItem);
+app.put('/api/:entity/:id', async (req, res) => {
+  const { data, error } = await supabase.from(req.params.entity).update(req.body).eq('id', req.params.id).select().single();
+  if (error) return res.status(500).json({ error: error.message });
+  res.json(data);
 });
 
-app.delete('/api/:entity/:id', (req, res) => {
-  const db = loadDb();
-  const collection = getCollection(db, req.params.entity);
-  const updated = collection.filter((entry) => String(entry.id) !== req.params.id);
-  saveDb(setCollection(db, req.params.entity, updated));
+app.delete('/api/:entity/:id', async (req, res) => {
+  const { error } = await supabase.from(req.params.entity).delete().eq('id', req.params.id);
+  if (error) return res.status(500).json({ error: error.message });
   res.status(204).end();
 });
+
 
 // Redirecionar qualquer outra requisição para o index.html (SPA routing do React)
 app.get('*', (req, res) => {
