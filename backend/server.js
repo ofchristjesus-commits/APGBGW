@@ -16,32 +16,39 @@ app.use(express.json());
 app.use(express.static(join(__dirname, '../frontend/dist')));
 
 
+const entityToTable = {
+  autorizacoesCredito: 'autorizacoes_credito',
+  logsSistema: 'logs_sistema'
+};
+
+const getTableName = (entity) => entityToTable[entity] || entity;
+
 app.get('/api/:entity', async (req, res) => {
-  const { data, error } = await supabase.from(req.params.entity).select('*');
+  const { data, error } = await supabase.from(getTableName(req.params.entity)).select('*');
   if (error) return res.status(500).json({ error: error.message });
   res.json(data);
 });
 
 app.get('/api/:entity/:id', async (req, res) => {
-  const { data, error } = await supabase.from(req.params.entity).select('*').eq('id', req.params.id).single();
+  const { data, error } = await supabase.from(getTableName(req.params.entity)).select('*').eq('id', req.params.id).single();
   if (error) return res.status(404).json({ error: 'Not found' });
   res.json(data);
 });
 
 app.post('/api/:entity', async (req, res) => {
-  const { data, error } = await supabase.from(req.params.entity).insert(req.body).select().single();
+  const { data, error } = await supabase.from(getTableName(req.params.entity)).insert(req.body).select().single();
   if (error) return res.status(500).json({ error: error.message });
   res.status(201).json(data);
 });
 
 app.put('/api/:entity/:id', async (req, res) => {
-  const { data, error } = await supabase.from(req.params.entity).update(req.body).eq('id', req.params.id).select().single();
+  const { data, error } = await supabase.from(getTableName(req.params.entity)).update(req.body).eq('id', req.params.id).select().single();
   if (error) return res.status(500).json({ error: error.message });
   res.json(data);
 });
 
 app.delete('/api/:entity/:id', async (req, res) => {
-  const { error } = await supabase.from(req.params.entity).delete().eq('id', req.params.id);
+  const { error } = await supabase.from(getTableName(req.params.entity)).delete().eq('id', req.params.id);
   if (error) return res.status(500).json({ error: error.message });
   res.status(204).end();
 });

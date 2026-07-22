@@ -57,7 +57,13 @@ function loadFromStorage(entityName) {
   const stored = localStorage.getItem(key);
   if (stored) {
     const normalized = normalizeStoredData(stored);
-    return JSON.parse(normalized);
+    try {
+      const parsed = JSON.parse(normalized);
+      return Array.isArray(parsed) ? parsed : [];
+    } catch (e) {
+      console.warn(`Failed to parse localStorage for ${entityName}`, e);
+      return [];
+    }
   }
   // Initialize with seed data if available
   const seed = allSeeds[entityName];
