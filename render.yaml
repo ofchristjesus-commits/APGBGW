@@ -1,9 +1,10 @@
-services:
+databases:
   # 1. Banco de Dados PostgreSQL
-  - type: sql
-    name: apgb-system-db
+  - name: apgb-system-db
     plan: free # Alterar para standard ou pro em produção
-    version: 15
+    postgresMajorVersion: 15
+
+services:
 
   # 2. Backend API (Node.js/Express)
   - type: web
@@ -38,3 +39,4 @@ services:
       - type: rewrite
         source: /*
         destination: /index.html
+
