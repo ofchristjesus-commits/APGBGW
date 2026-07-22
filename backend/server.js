@@ -14,9 +14,9 @@ const app = express();
 app.use(cors());
 app.use(express.json());
 
-// Servir os arquivos estáticos do frontend (React/Vite)
-app.use(express.static(join(__dirname, '../frontend/dist')));
-
+app.get('/', (req, res) => {
+  res.json({ message: 'APGB System API is running', status: 'OK' });
+});
 
 const loadDb = () => {
   if (!existsSync(DB_PATH)) {
@@ -73,14 +73,6 @@ app.delete('/api/:entity/:id', (req, res) => {
   const updated = collection.filter((entry) => String(entry.id) !== req.params.id);
   saveDb(setCollection(db, req.params.entity, updated));
   res.status(204).end();
-});
-
-// Redirecionar qualquer outra requisição para o index.html (SPA routing do React)
-app.get('*', (req, res) => {
-  if (req.path.startsWith('/api')) {
-    return res.status(404).json({ error: 'API route not found' });
-  }
-  res.sendFile(join(__dirname, '../frontend/dist/index.html'));
 });
 
 app.listen(PORT, '0.0.0.0', () => {
