@@ -1,12 +1,6 @@
-databases:
-  # 1. Banco de Dados PostgreSQL
-  - name: apgb-system-db
-    plan: free # Alterar para standard ou pro em produção
-    postgresMajorVersion: 15
-
 services:
 
-  # 2. Sistema Unificado (Backend Node.js servindo Frontend Vite/React)
+  # Sistema Unificado (Backend Node.js servindo Frontend Vite/React)
   - type: web
     name: apgb-system-api
     env: node
@@ -16,9 +10,5 @@ services:
     envVars:
       - key: NODE_ENV
         value: production
-      - key: DATABASE_URL
-        fromDatabase:
-          name: apgb-system-db
-          property: connectionString
       - key: JWT_SECRET
         generateValue: true
