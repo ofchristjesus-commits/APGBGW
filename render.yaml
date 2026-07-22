@@ -29,7 +29,6 @@ services:
   - type: web
     name: apgb-system-frontend
     env: static
-    plan: free
     buildCommand: cd frontend && npm install && npm run build
     staticPublishPath: frontend/dist
     envVars:
@@ -39,3 +38,4 @@ services:
       - type: rewrite
         source: /*
         destination: /index.html
+
