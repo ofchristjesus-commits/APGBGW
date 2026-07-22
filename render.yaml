@@ -1,7 +1,7 @@
 databases:
   # 1. Banco de Dados PostgreSQL
   - name: apgb-system-db
-    plan: free # Alterar para standard ou pro em produção
+    plan: standard
     postgresMajorVersion: 15
 
 services:
