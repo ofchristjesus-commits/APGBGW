@@ -1,0 +1,7 @@
+﻿<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64" role="img" aria-label="Âncora azul">
+  <rect width="64" height="64" rx="16" fill="#eff6ff"/>
+  <path d="M32 14a7 7 0 0 0-7 7c0 3.6 4.4 8.2 6.4 10.4a1.2 1.2 0 0 0 1.8 0C34.6 29.2 39 24.6 39 21a7 7 0 0 0-7-7Z" fill="#2563eb"/>
+  <path d="M22 24c0 6.2 4.6 10.4 10 14.2 5.4-3.8 10-8 10-14.2" stroke="#2563eb" stroke-width="4" stroke-linecap="round"/>
+  <path d="M32 40v12" stroke="#1d4ed8" stroke-width="4" stroke-linecap="round"/>
+  <path d="M24 52h16" stroke="#1d4ed8" stroke-width="4" stroke-linecap="round"/>
+</svg>

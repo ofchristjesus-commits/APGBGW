@@ -1,0 +1,40 @@
+services:
+  # 1. Banco de Dados PostgreSQL
+  - type: pgo
+    name: apgb-system-db
+    plan: free # Alterar para standard ou pro em produção
+    version: 15
+
+  # 2. Backend API (Node.js/Express)
+  - type: web
+    name: apgb-system-api
+    env: node
+    plan: free
+    buildCommand: cd backend && npm install
+    startCommand: cd backend && npm start
+    envVars:
+      - key: NODE_ENV
+        value: production
+      - key: DATABASE_URL
+        fromDatabase:
+          name: apgb-system-db
+          property: connectionString
+      - key: CORS_ORIGIN
+        value: https://apgb-system-frontend.onrender.com # Atualizar se o nome do serviço frontend mudar
+      - key: JWT_SECRET
+        generateValue: true
+
+  # 3. Frontend Web App (Vite/React)
+  - type: web
+    name: apgb-system-frontend
+    env: static
+    plan: free
+    buildCommand: cd frontend && npm install && npm run build
+    staticPublishPath: frontend/dist
+    envVars:
+      - key: VITE_API_BASE_URL
+        value: https://apgb-system-api.onrender.com # Atualizar se o nome do serviço backend mudar
+    routes:
+      - type: rewrite
+        source: /*
+        destination: /index.html
