@@ -23,28 +23,45 @@ const entityToTable = {
 
 const getTableName = (entity) => entityToTable[entity] || entity;
 
+const snakeToCamel = (str) => str.replace(/_([a-z])/g, (g) => g[1].toUpperCase());
+const camelToSnake = (str) => str.replace(/[A-Z]/g, (letter) => `_${letter.toLowerCase()}`);
+
+const convertKeys = (obj, converter) => {
+  if (Array.isArray(obj)) {
+    return obj.map(item => convertKeys(item, converter));
+  } else if (obj !== null && typeof obj === 'object' && !(obj instanceof Date)) {
+    return Object.keys(obj).reduce((acc, key) => {
+      acc[converter(key)] = convertKeys(obj[key], converter);
+      return acc;
+    }, {});
+  }
+  return obj;
+};
+
 app.get('/api/:entity', async (req, res) => {
   const { data, error } = await supabase.from(getTableName(req.params.entity)).select('*');
   if (error) return res.status(500).json({ error: error.message });
-  res.json(data);
+  res.json(convertKeys(data, snakeToCamel));
 });
 
 app.get('/api/:entity/:id', async (req, res) => {
   const { data, error } = await supabase.from(getTableName(req.params.entity)).select('*').eq('id', req.params.id).single();
   if (error) return res.status(404).json({ error: 'Not found' });
-  res.json(data);
+  res.json(convertKeys(data, snakeToCamel));
 });
 
 app.post('/api/:entity', async (req, res) => {
-  const { data, error } = await supabase.from(getTableName(req.params.entity)).insert(req.body).select().single();
+  const dbData = convertKeys(req.body, camelToSnake);
+  const { data, error } = await supabase.from(getTableName(req.params.entity)).insert(dbData).select().single();
   if (error) return res.status(500).json({ error: error.message });
-  res.status(201).json(data);
+  res.status(201).json(convertKeys(data, snakeToCamel));
 });
 
 app.put('/api/:entity/:id', async (req, res) => {
-  const { data, error } = await supabase.from(getTableName(req.params.entity)).update(req.body).eq('id', req.params.id).select().single();
+  const dbData = convertKeys(req.body, camelToSnake);
+  const { data, error } = await supabase.from(getTableName(req.params.entity)).update(dbData).eq('id', req.params.id).select().single();
   if (error) return res.status(500).json({ error: error.message });
-  res.json(data);
+  res.json(convertKeys(data, snakeToCamel));
 });
 
 app.delete('/api/:entity/:id', async (req, res) => {
