@@ -1,13 +1,11 @@
 import express from 'express';
 import cors from 'cors';
-import { readFileSync, writeFileSync, existsSync } from 'fs';
 import { fileURLToPath } from 'url';
 import { dirname, join } from 'path';
-import { allSeeds } from '../frontend/src/data/seedData.js';
+import { supabase } from './supabase.js';
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = dirname(__filename);
-const DB_PATH = join(__dirname, 'db.json');
 const PORT = process.env.PORT || 4000;
 const app = express();
 
@@ -17,8 +15,6 @@ app.use(express.json());
 // Servir os arquivos estáticos do frontend (React/Vite)
 app.use(express.static(join(__dirname, '../frontend/dist')));
 
-
-import { supabase } from './supabase.js';
 
 app.get('/api/:entity', async (req, res) => {
   const { data, error } = await supabase.from(req.params.entity).select('*');
