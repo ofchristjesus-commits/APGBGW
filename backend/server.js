@@ -14,6 +14,10 @@ const app = express();
 app.use(cors());
 app.use(express.json());
 
+app.get('/', (req, res) => {
+  res.json({ message: 'APGB System API is running', status: 'OK' });
+});
+
 const loadDb = () => {
   if (!existsSync(DB_PATH)) {
     writeFileSync(DB_PATH, JSON.stringify(allSeeds, null, 2), 'utf-8');
@@ -71,6 +75,6 @@ app.delete('/api/:entity/:id', (req, res) => {
   res.status(204).end();
 });
 
-app.listen(PORT, () => {
-  console.log(`API server running on http://localhost:${PORT}`);
+app.listen(PORT, '0.0.0.0', () => {
+  console.log(`API server running on port ${PORT} (0.0.0.0)`);
 });
