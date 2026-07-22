@@ -1,6 +1,6 @@
 services:
   # 1. Banco de Dados PostgreSQL
-  - type: pgo
+  - type: postgres
     name: apgb-system-db
     plan: free # Alterar para standard ou pro em produção
     version: 15
