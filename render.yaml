@@ -6,12 +6,12 @@ databases:
 
 services:
 
-  # 2. Backend API (Node.js/Express)
+  # 2. Sistema Unificado (Backend Node.js servindo Frontend Vite/React)
   - type: web
     name: apgb-system-api
     env: node
     plan: free
-    buildCommand: cd backend && npm install
+    buildCommand: npm install --prefix frontend && npm run build --prefix frontend && cd backend && npm install
     startCommand: cd backend && npm start
     envVars:
       - key: NODE_ENV
@@ -20,22 +20,6 @@ services:
         fromDatabase:
           name: apgb-system-db
           property: connectionString
-      - key: CORS_ORIGIN
-        value: https://apgb-system-frontend.onrender.com # Atualizar se o nome do serviço frontend mudar
       - key: JWT_SECRET
         generateValue: true
-
-  # 3. Frontend Web App (Vite/React)
-  - type: web
-    name: apgb-system-frontend
-    env: static
-    buildCommand: cd frontend && npm install && npm run build
-    staticPublishPath: frontend/dist
-    envVars:
-      - key: VITE_API_BASE_URL
-        value: https://apgb-system-api.onrender.com # Atualizar se o nome do serviço backend mudar
-    routes:
-      - type: rewrite
-        source: /*
-        destination: /index.html
 

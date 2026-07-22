@@ -3,7 +3,7 @@
 -- ==========================================
 
 -- 1. Dados Organizacionais
-CREATE TABLE empresa (
+CREATE TABLE IF NOT EXISTS empresa (
     id SERIAL PRIMARY KEY,
     nome VARCHAR(255) NOT NULL,
     nif VARCHAR(50),
@@ -14,7 +14,7 @@ CREATE TABLE empresa (
 );
 
 -- 2. Utilizadores e Controlo de Acesso
-CREATE TABLE utilizadores (
+CREATE TABLE IF NOT EXISTS utilizadores (
     id SERIAL PRIMARY KEY,
     nome VARCHAR(255) NOT NULL,
     email VARCHAR(255) UNIQUE NOT NULL,
@@ -27,7 +27,7 @@ CREATE TABLE utilizadores (
 );
 
 -- 3. Operações Portuárias - Navios e Atracagens
-CREATE TABLE navios (
+CREATE TABLE IF NOT EXISTS navios (
     id SERIAL PRIMARY KEY,
     nome VARCHAR(255) NOT NULL,
     imo VARCHAR(50) UNIQUE,
@@ -41,7 +41,7 @@ CREATE TABLE navios (
     status VARCHAR(50) DEFAULT 'Esperado'
 );
 
-CREATE TABLE atracagens (
+CREATE TABLE IF NOT EXISTS atracagens (
     id SERIAL PRIMARY KEY,
     navio_id INTEGER REFERENCES navios(id) ON DELETE CASCADE,
     cais VARCHAR(100),
@@ -54,10 +54,10 @@ CREATE TABLE atracagens (
     num_viagem VARCHAR(100)
 );
 
-CREATE INDEX idx_atracagens_navio_id ON atracagens(navio_id);
+CREATE INDEX IF NOT EXISTS idx_atracagens_navio_id ON atracagens(navio_id);
 
 -- 4. Armazéns e Equipamentos
-CREATE TABLE armazens (
+CREATE TABLE IF NOT EXISTS armazens (
     id SERIAL PRIMARY KEY,
     nome VARCHAR(255) NOT NULL,
     codigo VARCHAR(50) UNIQUE NOT NULL,
@@ -68,7 +68,7 @@ CREATE TABLE armazens (
     localizacao TEXT
 );
 
-CREATE TABLE equipamentos (
+CREATE TABLE IF NOT EXISTS equipamentos (
     id SERIAL PRIMARY KEY,
     nome VARCHAR(255) NOT NULL,
     codigo VARCHAR(50) UNIQUE NOT NULL,
@@ -82,7 +82,7 @@ CREATE TABLE equipamentos (
 );
 
 -- 5. Recursos Humanos
-CREATE TABLE funcionarios (
+CREATE TABLE IF NOT EXISTS funcionarios (
     id SERIAL PRIMARY KEY,
     nome VARCHAR(255) NOT NULL,
     matricula VARCHAR(50) UNIQUE NOT NULL,
@@ -99,14 +99,14 @@ CREATE TABLE funcionarios (
     numero_conta VARCHAR(100)
 );
 
-CREATE TABLE reformas (
+CREATE TABLE IF NOT EXISTS reformas (
     id SERIAL PRIMARY KEY,
     funcionario_id INTEGER REFERENCES funcionarios(id) ON DELETE CASCADE,
     data_adicionado DATE,
     status VARCHAR(50) DEFAULT 'Pendente'
 );
 
-CREATE TABLE pagamentos (
+CREATE TABLE IF NOT EXISTS pagamentos (
     id SERIAL PRIMARY KEY,
     funcionario_id INTEGER REFERENCES funcionarios(id) ON DELETE CASCADE,
     horas_extras NUMERIC(5,2) DEFAULT 0,
@@ -118,7 +118,7 @@ CREATE TABLE pagamentos (
     observacoes TEXT
 );
 
-CREATE TABLE pontos (
+CREATE TABLE IF NOT EXISTS pontos (
     id SERIAL PRIMARY KEY,
     funcionario_id INTEGER REFERENCES funcionarios(id) ON DELETE CASCADE,
     data DATE NOT NULL,
@@ -127,13 +127,13 @@ CREATE TABLE pontos (
     status VARCHAR(50)
 );
 
-CREATE INDEX idx_reformas_funcionario_id ON reformas(funcionario_id);
-CREATE INDEX idx_pagamentos_funcionario_id ON pagamentos(funcionario_id);
-CREATE INDEX idx_pontos_funcionario_id ON pontos(funcionario_id);
-CREATE INDEX idx_pontos_data ON pontos(data);
+CREATE INDEX IF NOT EXISTS idx_reformas_funcionario_id ON reformas(funcionario_id);
+CREATE INDEX IF NOT EXISTS idx_pagamentos_funcionario_id ON pagamentos(funcionario_id);
+CREATE INDEX IF NOT EXISTS idx_pontos_funcionario_id ON pontos(funcionario_id);
+CREATE INDEX IF NOT EXISTS idx_pontos_data ON pontos(data);
 
 -- 6. Gestão de Carga
-CREATE TABLE manifestos (
+CREATE TABLE IF NOT EXISTS manifestos (
     id SERIAL PRIMARY KEY,
     num_manifesto VARCHAR(100) UNIQUE NOT NULL,
     navio_id INTEGER REFERENCES navios(id) ON DELETE RESTRICT,
@@ -147,7 +147,7 @@ CREATE TABLE manifestos (
     agente VARCHAR(255)
 );
 
-CREATE TABLE bls (
+CREATE TABLE IF NOT EXISTS bls (
     id SERIAL PRIMARY KEY,
     num_bl VARCHAR(100) UNIQUE NOT NULL,
     navio_id INTEGER REFERENCES navios(id) ON DELETE RESTRICT,
@@ -170,11 +170,11 @@ CREATE TABLE bls (
     porto_destino VARCHAR(255)
 );
 
-CREATE INDEX idx_manifestos_navio_id ON manifestos(navio_id);
-CREATE INDEX idx_bls_manifesto_id ON bls(manifesto_id);
-CREATE INDEX idx_bls_navio_id ON bls(navio_id);
+CREATE INDEX IF NOT EXISTS idx_manifestos_navio_id ON manifestos(navio_id);
+CREATE INDEX IF NOT EXISTS idx_bls_manifesto_id ON bls(manifesto_id);
+CREATE INDEX IF NOT EXISTS idx_bls_navio_id ON bls(navio_id);
 
-CREATE TABLE pesagens (
+CREATE TABLE IF NOT EXISTS pesagens (
     id SERIAL PRIMARY KEY,
     num_ticket VARCHAR(100) UNIQUE NOT NULL,
     tipo VARCHAR(100),
@@ -191,9 +191,9 @@ CREATE TABLE pesagens (
     data_hora TIMESTAMP
 );
 
-CREATE INDEX idx_pesagens_navio_id ON pesagens(navio_id);
+CREATE INDEX IF NOT EXISTS idx_pesagens_navio_id ON pesagens(navio_id);
 
-CREATE TABLE containers (
+CREATE TABLE IF NOT EXISTS containers (
     id SERIAL PRIMARY KEY,
     num_container VARCHAR(50) UNIQUE NOT NULL,
     tipo VARCHAR(100),
@@ -209,10 +209,10 @@ CREATE TABLE containers (
     condicao VARCHAR(100)
 );
 
-CREATE INDEX idx_containers_bl_id ON containers(bl_id);
+CREATE INDEX IF NOT EXISTS idx_containers_bl_id ON containers(bl_id);
 
 -- 7. Financeiro (Faturação)
-CREATE TABLE faturas (
+CREATE TABLE IF NOT EXISTS faturas (
     id SERIAL PRIMARY KEY,
     num_fatura VARCHAR(100) UNIQUE NOT NULL,
     cliente VARCHAR(255),
@@ -231,7 +231,7 @@ CREATE TABLE faturas (
 );
 
 -- 8. Comunicação e Site Institucional
-CREATE TABLE notificacoes (
+CREATE TABLE IF NOT EXISTS notificacoes (
     id SERIAL PRIMARY KEY,
     titulo VARCHAR(255) NOT NULL,
     mensagem TEXT,
@@ -243,7 +243,7 @@ CREATE TABLE notificacoes (
     data_criacao TIMESTAMP DEFAULT CURRENT_TIMESTAMP
 );
 
-CREATE TABLE noticias (
+CREATE TABLE IF NOT EXISTS noticias (
     id SERIAL PRIMARY KEY,
     titulo VARCHAR(255) NOT NULL,
     resumo TEXT,
@@ -253,14 +253,14 @@ CREATE TABLE noticias (
     publicada BOOLEAN DEFAULT false
 );
 
-CREATE TABLE faqs (
+CREATE TABLE IF NOT EXISTS faqs (
     id SERIAL PRIMARY KEY,
     pergunta TEXT NOT NULL,
     resposta TEXT NOT NULL,
     ativa BOOLEAN DEFAULT true
 );
 
-CREATE TABLE servicos (
+CREATE TABLE IF NOT EXISTS servicos (
     id SERIAL PRIMARY KEY,
     titulo VARCHAR(255) NOT NULL,
     descricao TEXT,
@@ -268,7 +268,7 @@ CREATE TABLE servicos (
     ativo BOOLEAN DEFAULT true
 );
 
-CREATE TABLE videos (
+CREATE TABLE IF NOT EXISTS videos (
     id SERIAL PRIMARY KEY,
     titulo VARCHAR(255) NOT NULL,
     url TEXT NOT NULL,
@@ -277,7 +277,7 @@ CREATE TABLE videos (
 );
 
 -- 9. Operacional e Administração
-CREATE TABLE escalas (
+CREATE TABLE IF NOT EXISTS escalas (
     id SERIAL PRIMARY KEY,
     tipo VARCHAR(100),
     navio_id INTEGER REFERENCES navios(id) ON DELETE CASCADE,
@@ -288,9 +288,9 @@ CREATE TABLE escalas (
     status VARCHAR(50)
 );
 
-CREATE INDEX idx_escalas_navio_id ON escalas(navio_id);
+CREATE INDEX IF NOT EXISTS idx_escalas_navio_id ON escalas(navio_id);
 
-CREATE TABLE fiscalizacoes (
+CREATE TABLE IF NOT EXISTS fiscalizacoes (
     id SERIAL PRIMARY KEY,
     num_auto VARCHAR(100) UNIQUE NOT NULL,
     tipo VARCHAR(100),
@@ -304,7 +304,7 @@ CREATE TABLE fiscalizacoes (
     prazo_regularizacao DATE
 );
 
-CREATE TABLE compras (
+CREATE TABLE IF NOT EXISTS compras (
     id SERIAL PRIMARY KEY,
     num_requisicao VARCHAR(100) UNIQUE NOT NULL,
     departamento VARCHAR(100),
@@ -319,7 +319,7 @@ CREATE TABLE compras (
     urgencia VARCHAR(50)
 );
 
-CREATE TABLE audiencias (
+CREATE TABLE IF NOT EXISTS audiencias (
     id SERIAL PRIMARY KEY,
     titulo VARCHAR(255) NOT NULL,
     tipo VARCHAR(100),
@@ -331,7 +331,7 @@ CREATE TABLE audiencias (
     notas TEXT
 );
 
-CREATE TABLE correspondencias (
+CREATE TABLE IF NOT EXISTS correspondencias (
     id SERIAL PRIMARY KEY,
     num_referencia VARCHAR(100) UNIQUE NOT NULL,
     tipo VARCHAR(50),
@@ -344,7 +344,7 @@ CREATE TABLE correspondencias (
     observacoes TEXT
 );
 
-CREATE TABLE despachos (
+CREATE TABLE IF NOT EXISTS despachos (
     id SERIAL PRIMARY KEY,
     num_despacho VARCHAR(100) UNIQUE NOT NULL,
     assunto TEXT,
@@ -355,7 +355,7 @@ CREATE TABLE despachos (
     data_criacao DATE
 );
 
-CREATE TABLE autorizacoes_credito (
+CREATE TABLE IF NOT EXISTS autorizacoes_credito (
     id SERIAL PRIMARY KEY,
     num_autorizacao VARCHAR(100) UNIQUE NOT NULL,
     beneficiario VARCHAR(255),
@@ -365,7 +365,7 @@ CREATE TABLE autorizacoes_credito (
     data_criacao DATE
 );
 
-CREATE TABLE isencoes (
+CREATE TABLE IF NOT EXISTS isencoes (
     id SERIAL PRIMARY KEY,
     num_isencao VARCHAR(100) UNIQUE NOT NULL,
     beneficiario VARCHAR(255),
@@ -376,7 +376,7 @@ CREATE TABLE isencoes (
     data_solicitacao DATE
 );
 
-CREATE TABLE compromissos (
+CREATE TABLE IF NOT EXISTS compromissos (
     id SERIAL PRIMARY KEY,
     titulo VARCHAR(255) NOT NULL,
     data_hora TIMESTAMP,
@@ -386,7 +386,7 @@ CREATE TABLE compromissos (
     descricao TEXT
 );
 
-CREATE TABLE contatos (
+CREATE TABLE IF NOT EXISTS contatos (
     id SERIAL PRIMARY KEY,
     nome VARCHAR(255) NOT NULL,
     entidade VARCHAR(255),
@@ -397,7 +397,7 @@ CREATE TABLE contatos (
 );
 
 -- 10. Auditoria e Logs
-CREATE TABLE logs_sistema (
+CREATE TABLE IF NOT EXISTS logs_sistema (
     id SERIAL PRIMARY KEY,
     tipo VARCHAR(100),
     mensagem TEXT,

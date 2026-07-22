@@ -14,6 +14,10 @@ const app = express();
 app.use(cors());
 app.use(express.json());
 
+// Servir os arquivos estáticos do frontend (React/Vite)
+app.use(express.static(join(__dirname, '../frontend/dist')));
+
+
 const loadDb = () => {
   if (!existsSync(DB_PATH)) {
     writeFileSync(DB_PATH, JSON.stringify(allSeeds, null, 2), 'utf-8');
@@ -71,6 +75,14 @@ app.delete('/api/:entity/:id', (req, res) => {
   res.status(204).end();
 });
 
-app.listen(PORT, () => {
-  console.log(`API server running on http://localhost:${PORT}`);
+// Redirecionar qualquer outra requisição para o index.html (SPA routing do React)
+app.get('*', (req, res) => {
+  if (req.path.startsWith('/api')) {
+    return res.status(404).json({ error: 'API route not found' });
+  }
+  res.sendFile(join(__dirname, '../frontend/dist/index.html'));
+});
+
+app.listen(PORT, '0.0.0.0', () => {
+  console.log(`API server running on port ${PORT} (0.0.0.0)`);
 });
