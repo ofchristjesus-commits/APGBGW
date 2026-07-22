@@ -3,12 +3,12 @@ import { useAuth } from '../contexts/AuthContext';
 import { allSeeds } from '../data/seedData';
 
 // ============================================================
-// useEntity — Hook genérico CRUD com localStorage
+// useEntity — Hook genérico CRUD com API backend (Supabase)
 // ============================================================
 
 const STORAGE_PREFIX = 'portocais_';
 const API_BASE_URL = import.meta.env.VITE_API_BASE_URL || '';
-const useApi = Boolean(API_BASE_URL);
+const useApi = true; // Sempre usar a API (backend unificado com Supabase)
 
 function dispatchEntityUpdate(entityName) {
   if (typeof window !== 'undefined') {
