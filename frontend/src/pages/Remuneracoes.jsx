@@ -1,4 +1,4 @@
-import { useMemo, useState } from 'react';
+import { useMemo, useState, useCallback } from 'react';
 import PageHeader from '../components/shared/PageHeader';
 import SearchInput from '../components/shared/SearchInput';
 import StatsCard from '../components/shared/StatsCard';
@@ -11,9 +11,9 @@ const formatarMoeda = (valor) =>
   new Intl.NumberFormat('pt-PT', { style: 'currency', currency: 'XOF', minimumFractionDigits: 0 }).format(valor || 0);
 
 export default function Remuneracoes() {
-  const { items: pagamentos, create: criarPagamento, update: atualizarPagamento } = useEntity('pagamentos');
+  const { items: pagamentosRaw, create: criarPagamento, update: atualizarPagamento } = useEntity('pagamentos');
   const { items: funcionariosBase } = useEntity('funcionarios');
-  const { items: reformas } = useEntity('reformas');
+  const { items: reformasRaw } = useEntity('reformas');
 
   const [pesquisa, setPesquisa] = useState('');
   const [filtroStatus, setFiltroStatus] = useState('');
@@ -26,6 +26,42 @@ export default function Remuneracoes() {
   const [resultadoProcessamento, setResultadoProcessamento] = useState(null);
   const [pagamentosProcessadosId, setPagamentosProcessadosId] = useState([]);
   const [idadeReforma, setIdadeReforma] = useState(60);
+
+  const calcularIdade = useCallback((dataNascimento) => {
+    if (!dataNascimento) return null;
+    const hoje = new Date();
+    const [ano, mes, dia] = dataNascimento.split('-').map(Number);
+    const nascimento = new Date(ano, mes - 1, dia);
+    let idade = hoje.getFullYear() - nascimento.getFullYear();
+    if (hoje.getMonth() < nascimento.getMonth() || (hoje.getMonth() === nascimento.getMonth() && hoje.getDate() < nascimento.getDate())) {
+      idade -= 1;
+    }
+    return idade;
+  }, []);
+
+  const pagamentos = useMemo(() => {
+    return pagamentosRaw.map(p => {
+      const funcionario = funcionariosBase.find(f => f.id === p.funcionarioId) || {};
+      return {
+        ...p,
+        nome: p.nome || funcionario.nome || 'Desconhecido',
+        perfil: p.perfil || funcionario.categoria || 'Desconhecido'
+      };
+    });
+  }, [pagamentosRaw, funcionariosBase]);
+
+  const reformas = useMemo(() => {
+    return reformasRaw.map(r => {
+      const funcionario = funcionariosBase.find(f => f.id === r.funcionarioId) || {};
+      const idade = calcularIdade(funcionario.dataNascimento) || r.idade || 0;
+      return {
+        ...r,
+        nome: r.nome || funcionario.nome || 'Desconhecido',
+        dataNascimento: r.dataNascimento || funcionario.dataNascimento || 'Desconhecido',
+        idade: idade
+      };
+    });
+  }, [reformasRaw, funcionariosBase, calcularIdade]);
 
   const funcionarios = useMemo(
     () => [...new Set([...pagamentos.map((p) => p.nome), ...funcionariosBase.map((f) => f.nome)])].sort(),
@@ -47,31 +83,19 @@ export default function Remuneracoes() {
     [funcionariosAtivos, bancoSelecionado]
   );
 
-  const calcularIdade = (dataNascimento) => {
-    if (!dataNascimento) return null;
-    const hoje = new Date();
-    const [ano, mes, dia] = dataNascimento.split('-').map(Number);
-    const nascimento = new Date(ano, mes - 1, dia);
-    let idade = hoje.getFullYear() - nascimento.getFullYear();
-    if (hoje.getMonth() < nascimento.getMonth() || (hoje.getMonth() === nascimento.getMonth() && hoje.getDate() < nascimento.getDate())) {
-      idade -= 1;
-    }
-    return idade;
-  };
-
   const funcionariosParaReforma = useMemo(
     () => funcionariosBase.filter((funcionario) => {
       const idade = calcularIdade(funcionario.dataNascimento);
       return idade !== null && idade >= idadeReforma;
     }),
-    [funcionariosBase, idadeReforma]
+    [funcionariosBase, idadeReforma, calcularIdade]
   );
 
   const itensFiltrados = pagamentos.filter((pagamento) => {
     const pesquisaTexto = pesquisa.trim().toLowerCase();
     const correspondePesquisa =
-      pagamento.nome.toLowerCase().includes(pesquisaTexto) ||
-      pagamento.perfil.toLowerCase().includes(pesquisaTexto);
+      (pagamento.nome || '').toLowerCase().includes(pesquisaTexto) ||
+      (pagamento.perfil || '').toLowerCase().includes(pesquisaTexto);
     const correspondeStatus = !filtroStatus || pagamento.status === filtroStatus;
     const correspondeFuncionario = !filtroFuncionario || pagamento.nome === filtroFuncionario;
     return correspondePesquisa && correspondeStatus && correspondeFuncionario;
@@ -95,8 +119,6 @@ export default function Remuneracoes() {
       const contribuicaoSocial = Math.round(valorBase * 0.08);
       const pagamentoCriado = criarPagamento({
         funcionarioId: funcionario.id,
-        nome: funcionario.nome,
-        perfil: funcionario.categoria,
         horasExtras: 0,
         valorHorasExtras: 0,
         valorTotal: valorBase,

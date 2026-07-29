@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react';
+import { useEffect, useState, useMemo } from 'react';
 import PageHeader from '../components/shared/PageHeader';
 import Modal from '../components/shared/Modal';
 import { useEntity } from '../hooks/useEntity';
@@ -7,12 +7,24 @@ import { format } from 'date-fns';
 
 export default function ControlePonto() {
   const { items: funcionarios } = useEntity('funcionarios');
-  const { items: pontos, create, update } = useEntity('pontos');
+  const { items: pontosRaw, create, update } = useEntity('pontos');
   const hoje = new Date().toISOString().split('T')[0];
   const [modalAberto, setModalAberto] = useState(false);
   const [registroAtual, setRegistroAtual] = useState(null);
   const [entrada, setEntrada] = useState('');
   const [saida, setSaida] = useState('');
+
+  const pontos = useMemo(() => {
+    return pontosRaw.map(p => {
+      const funcionario = funcionarios.find(f => f.id === p.funcionarioId) || {};
+      return {
+        ...p,
+        funcionarioNome: p.funcionarioNome || funcionario.nome || 'Desconhecido',
+        matricula: p.matricula || funcionario.matricula || 'N/A',
+        departamento: p.departamento || funcionario.departamento || 'N/A'
+      };
+    });
+  }, [pontosRaw, funcionarios]);
 
   useEffect(() => {
     funcionarios.forEach(func => {
@@ -20,9 +32,6 @@ export default function ControlePonto() {
       if (!existe) {
         create({
           funcionarioId: func.id,
-          funcionarioNome: func.nome,
-          matricula: func.matricula,
-          departamento: func.departamento,
           data: hoje,
           horaEntrada: '',
           horaSaida: '',
