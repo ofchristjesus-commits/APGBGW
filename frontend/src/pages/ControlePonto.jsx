@@ -6,13 +6,14 @@ import { Clock, Edit2 } from 'lucide-react';
 import { format } from 'date-fns';
 
 export default function ControlePonto() {
-  const { items: funcionarios } = useEntity('funcionarios');
-  const { items: pontosRaw, create, update } = useEntity('pontos');
+  const { items: funcionarios, loading: loadingFunc } = useEntity('funcionarios');
+  const { items: pontosRaw, loading: loadingPontos, create, update } = useEntity('pontos');
   const hoje = new Date().toISOString().split('T')[0];
   const [modalAberto, setModalAberto] = useState(false);
   const [registroAtual, setRegistroAtual] = useState(null);
   const [entrada, setEntrada] = useState('');
   const [saida, setSaida] = useState('');
+  const [inicializado, setInicializado] = useState(false);
 
   const pontos = useMemo(() => {
     return pontosRaw.map(p => {
@@ -27,19 +28,29 @@ export default function ControlePonto() {
   }, [pontosRaw, funcionarios]);
 
   useEffect(() => {
+    if (loadingFunc || loadingPontos || inicializado) return;
+
+    let toCreate = [];
     funcionarios.forEach(func => {
       const existe = pontos.some(p => p.funcionarioId === func.id && p.data === hoje);
       if (!existe) {
+        toCreate.push(func);
+      }
+    });
+
+    if (toCreate.length > 0) {
+      toCreate.forEach(func => {
         create({
           funcionarioId: func.id,
           data: hoje,
-          horaEntrada: '',
-          horaSaida: '',
+          horaEntrada: null,
+          horaSaida: null,
           status: 'Pendente'
         });
-      }
-    });
-  }, [funcionarios, pontos, create]);
+      });
+    }
+    setInicializado(true);
+  }, [funcionarios, pontos, loadingFunc, loadingPontos, inicializado, create, hoje]);
 
   // Exibir apenas os registos do dia atual na UI; registos antigos permanecem na base de dados
   const pontosHoje = pontos.filter(p => p.data === hoje);
@@ -69,7 +80,7 @@ export default function ControlePonto() {
   const handleSalvar = (e) => {
     e.preventDefault();
     const status = entrada && saida ? 'Completado' : entrada ? 'Iniciado' : 'Pendente';
-    update(registroAtual.id, { horaEntrada: entrada, horaSaida: saida, status });
+    update(registroAtual.id, { horaEntrada: entrada || null, horaSaida: saida || null, status });
     fecharModal();
   };
 
